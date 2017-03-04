@@ -3,7 +3,6 @@ package monolith52.bookminer.repository;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.Blob;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,13 +13,13 @@ import javax.imageio.ImageIO;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.jdbc.core.support.SqlLobValue;
 import org.springframework.jdbc.support.lob.DefaultLobHandler;
 import org.springframework.stereotype.Repository;
 
 import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.image.Image;
 
 @Repository
 public class BookDAO {
@@ -41,8 +40,12 @@ public class BookDAO {
 		return !result.isEmpty();
 	}
 	
-	public Blob findThumbnailByBookId(Integer bookId) {
-		return (Blob)db.queryForObject("select `thumbnail` from book where bookId = ?", Blob.class, bookId);
+	public byte[] findThumbnailByBookId(Integer bookId) {
+		byte[][] bytes = new byte[1][];
+		db.query("select `thumbnail` from book where bookId = ?", (ResultSet rs) -> {
+			bytes[0] = rs.getBytes("thumbnail");
+		}, bookId);
+		return bytes[0];
 	}
 	
 	public int getCount() {
